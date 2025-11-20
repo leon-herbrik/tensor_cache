@@ -2,6 +2,7 @@ from typing import Optional, Dict, Any, Tuple, Union
 import numpy as np
 import zarr
 import time
+import hashlib
 
 
 class TensorCache:
@@ -39,7 +40,7 @@ class TensorCache:
     def _get_shard_path(self, item_id: str) -> str:
         """Compute the sharded path for a given item id.
 
-        Uses the first 4 hex characters of the hash to create a two-level
+        Uses the first 4 hex characters of a stable hash to create a two-level
         directory structure (e.g., ab/cd/).
 
         Args:
@@ -48,8 +49,8 @@ class TensorCache:
         Returns:
             The full path to the zarr array for this item.
         """
-        hash_val = abs(hash(item_id))
-        hex_hash = f"{hash_val:016x}"
+        hash_bytes = hashlib.sha256(item_id.encode()).digest()
+        hex_hash = hash_bytes.hex()
 
         shard_1 = hex_hash[:2]
         shard_2 = hex_hash[2:4]
